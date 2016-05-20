@@ -38,7 +38,8 @@ def quart_f(coef):
         else:
             R1 = math.sqrt(T3 ** 2 - T2 ** 3)
 
-        R2 = abs(T3 + R1) ** (1.0 / 3)  # Error
+        R2 = abs(T3 + R1) ** (1.0 / 3)  # Error 
+        # Tada, we actually should not use abs, as it may cause new unexisting roots.
 
         if T3 + R1 < 0:  # Error
             R2 = -R2  # Error
