@@ -79,6 +79,11 @@ def quart_f(coef):
                 list_x.append(x.real)
             return list_x
 
+def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
+    
+    angle_b = arctg((math.tg(math.radians(angle_ad))*math.tg(math.radians(angle_ad)))/math.tg(math.radians(angle_ab - angle_ad)))
+
+    angle_bc = arcsin(math.cos(math.radians(angle_ad))*math.sqrt(((math.tg(math.radians(angle_ad))**2)+))
 
 def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
     """ Returns number of solutions and type of solutions for the given tetrahedron angles."""
