@@ -83,7 +83,7 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
     """Returns an array with angles of interest (angle_b, angle_bc, angle_ac)."""
 
     if (0 > angle_a) or (angle_a > 178) or (0 > angle_ab) or (angle_ab > 178) or (0 > angle_ad) or (angle_ad > 178) or (0 > angle_cd) or (angle_cd > 178):
-    return error('Does not exist 1') # angles of the same triangle should be at least equal to 1
+        return error('Does not exist 1') # angles of the same triangle should be at least equal to 1
 
     if angle_ad >= angle_ab:
         return error('Does not exist 2')
@@ -93,11 +93,11 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
     else: 
         return error('Does not exist 3')
     
-    angle_b = arctg((math.tg(math.radians(angle_ad))*math.tg(math.radians(angle_ad)))/math.tg(math.radians(angle_ab - angle_ad)))
+    angle_b = math.atan((math.tan(math.radians(angle_a))*math.tan(math.radians(angle_ad)))/math.tan(math.radians(angle_bd)))
 
-    angle_bc = arcsin(math.cos(math.radians(angle_ad))*math.sqrt(((math.tg(math.radians(angle_ad))**2)+((math.sin(math.radians(angle_cd))**2)))
+    angle_bc = math.asin(math.cos(math.radians(angle_ad))*math.sqrt(((math.tg(math.radians(angle_ad))**2)+((math.sin(math.radians(angle_cd))**2)))
 
-    angle_ac = arcsin(math.cos(math.radians(angle_bd))*math.sqrt(((math.tg(math.radians(angle_bd))**2)+((math.sin(math.radians(angle_cd))**2)))
+    angle_ac = math.asin(math.cos(math.radians(angle_bd))*math.sqrt(((math.tg(math.radians(angle_bd))**2)+((math.sin(math.radians(angle_cd))**2)))
 
     if 180 <= angle_a + angle_b:
         return error('Does not exist4')
