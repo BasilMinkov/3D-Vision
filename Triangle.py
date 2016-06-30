@@ -268,7 +268,7 @@ plot_bars(len(hist_list), hist_list)
 # print p_tetrahedron(60,60,angle_abbcca,angle_abbcca,angle_abbcca)
 
 def apexByTen():
-    """Calculates 18 bar-plots for groups of 10 visual angles an apex"""
+    """Calculates 18 bar-plots for groups of 10 visual angles at apex"""
 
     for i in range(18):
         tAngles = range(1, 180, 1)  # Triangle
@@ -278,7 +278,7 @@ def apexByTen():
         plot_bars(len(hist_list), hist_list, name)
 
 def tenStep():
-    """Calculates overall bar-plot for groups of 10 visual angles an apex"""
+    """Calculates overall bar-plot with 10 degree step"""
 
     tAngles = range(1, 180, 10)  # Triangle
     vAngles = range(1, 180, 10)  # Visual angles at apex
