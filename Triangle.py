@@ -277,10 +277,6 @@ def apexByTen():
         hist_list = hist_base(tAngles, vAngles)
         plot_bars(len(hist_list), hist_list, name)
 
-    # An example from Fischler & Bolles (1981)
-    # angle_abbcca = math.degrees(math.acos(5.0/8.0))
-    # print p_tetrahedron(60,60,angle_abbcca,angle_abbcca,angle_abbcca)
-
 def tenStep():
     """Calculates overall bar-plot for groups of 10 visual angles an apex"""
 
