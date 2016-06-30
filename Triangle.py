@@ -1,20 +1,20 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import pylab
 
-
-def plot_bars(n_groups, interps):
+def plot_bars(n_groups, interps, name):
     """ Returns a 15-interpretation bar plot for hist_list. Demands package matplotlib.pyplot as plt. """
 
+    filename = '/Users/basilminkov/PycharmProjects/3D Vision/%s.png' % name # type here your derectory
     index = np.arange(n_groups)
-    info = plt.bar(index, interps, width=1, alpha=0.6, color='r')
+    plt.bar(index, interps, width=1, alpha=0.6, color='r')
     plt.xlabel('Number Of Interpretations')
     plt.ylabel('Number Of Solutions')
-    plt.title('Number Of Solutions For Each Number Of Interpretations')
+    plt.title(name)
     plt.xticks(index + 0.5, index)
     plt.tight_layout()
-    plt.show()
-
+    pylab.savefig(filename)
 
 def quart_f(coef):
     """ Returns only real roots of the equation for maximum four coefficients.
@@ -266,3 +266,26 @@ plot_bars(len(hist_list), hist_list)
 # An example from Fischler & Bolles (1981)
 # angle_abbcca = math.degrees(math.acos(5.0/8.0))
 # print p_tetrahedron(60,60,angle_abbcca,angle_abbcca,angle_abbcca)
+
+def apexByTen():
+    """Calculates 18 bar-plots for groups of 10 visual angles an apex"""
+
+    for i in range(18):
+        tAngles = range(1, 180, 1)  # Triangle
+        vAngles = range(i*10, (i+1)*10, 1)  # Visual angles at apex
+        name = str('Triangle angles: %r, Visual angles at apex: %r') % (tAngles, vAngles)
+        hist_list = hist_base(tAngles, vAngles)
+        plot_bars(len(hist_list), hist_list, name)
+
+    # An example from Fischler & Bolles (1981)
+    # angle_abbcca = math.degrees(math.acos(5.0/8.0))
+    # print p_tetrahedron(60,60,angle_abbcca,angle_abbcca,angle_abbcca)
+
+def tenStep():
+    """Calculates overall bar-plot for groups of 10 visual angles an apex"""
+
+    tAngles = range(1, 180, 10)  # Triangle
+    vAngles = range(1, 180, 10)  # Visual angles at apex
+    name = str('Overall')
+    hist_list = hist_base(tAngles, vAngles)
+    plot_bars(len(hist_list), hist_list, name)
