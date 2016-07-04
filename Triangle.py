@@ -22,10 +22,10 @@ def quart_f(coef):
 
     if coef[0] != 0:
 
-        a3 = float(coef[1] / coef[0])
-        a2 = float(coef[2] / coef[0])
-        a1 = float(coef[3] / coef[0])
-        a0 = float(coef[4] / coef[0])
+        a3 = float(coef[1]) / coef[0] # Tada
+        a2 = float(coef[2]) / coef[0] # Tada
+        a1 = float(coef[3]) / coef[0] # Tada
+        a0 = float(coef[4]) / coef[0] # Tada
 
         T1 = -a3 / 4
         T2 = (a2 ** 2) - 3 * a3 * a1 + 12 * a0
@@ -44,7 +44,7 @@ def quart_f(coef):
         if T3 + R1 < 0:
             R2 = -R2
 
-        R3 = (1.0 / 12) * (T2 / R2 + R2)
+        R3 = (1.0 / 12) * (T2 / R2 + R2) # Tada: We need to consider a case that R2==0
 
         if T5 + R3 < 0:
             return []
@@ -77,7 +77,7 @@ def quart_f(coef):
         for x in roots:
             if x.imag == 0:
                 list_x.append(x.real)
-            return list_x
+        return list_x # Tada removed a bug
 
 def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
     """Returns an array with angles of interest (angle_b, angle_bc, angle_ac)."""
