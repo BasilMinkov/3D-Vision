@@ -1,12 +1,38 @@
-import numpy as np
+import sys
 import math
+import numpy as np
 import matplotlib.pyplot as plt
-import pylab
 
-def plot_bars(n_groups, interps, name):
-    """ Returns a 15-interpretation bar plot for hist_list. Demands package matplotlib.pyplot as plt. """
 
-    filename = '/Users/basilminkov/PycharmProjects/3D Vision/%s.png' % name # type here your derectory
+def print_progress(iteration, total, prefix='', suffix='', decimals=2, bar_length=100):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : number of decimals in percent complete (Int)
+        barLength   - Optional  : character length of bar (Int)
+
+    From: http://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+    """
+    filledLength = int(round(bar_length * iteration / float(total)))
+    percents = round(100.00 * (iteration / float(total)), decimals)
+    bar = '█' * filledLength + '-' * (bar_length - filledLength)
+    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+    sys.stdout.flush()
+    if iteration == total:
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+
+
+def plot_bars(n_groups, interps, name, filename):
+    """
+    Returns a bar-plot for given number of bars, values of bars,
+    name of a bar-plot and location of an output figure.
+    """
+
     index = np.arange(n_groups)
     plt.bar(index, interps, width=1, alpha=0.6, color='r')
     plt.xlabel('Number Of Interpretations')
@@ -14,34 +40,40 @@ def plot_bars(n_groups, interps, name):
     plt.title(name)
     plt.xticks(index + 0.5, index)
     plt.tight_layout()
-    pylab.savefig(filename)
+    plt.savefig(filename)
+    plt.clf()
 
-def real_roots(coef): # Tada: new function
+
+def real_roots(coef):  # Tada: new function
+    """ Returns only real roots computed with numpy """
     comp_roots = np.roots(coef)
     results = []
     for r in comp_roots:
         if r.imag == 0:
             results.append(r.real)
     return results
-    
+
+
 def quart_f(coef):
-    """ Returns only real roots of the equation for maximum four coefficients.
-    Works much faster than numpy.roots() function as uses analytical method. """
+    """
+    Returns only real roots of the equation for maximum four coefficients.
+    Works much faster than numpy.roots() function as uses analytical method.
+    """
 
     if coef[0] < 1e-10:
         return real_roots(coef)
-        
-    elif max(abs(coef[1]),abs(coef[2]),abs(coef[3]),abs(coef[4])) < 1e-10:
+
+    elif max(abs(coef[1]), abs(coef[2]), abs(coef[3]), abs(coef[4])) < 1e-10:
         return [0]
-        
-    elif float(abs(coef[0]))/max(abs(coef[1]),abs(coef[2]),abs(coef[3]),abs(coef[4])) < 1e-10:
+
+    elif float(abs(coef[0])) / max(abs(coef[1]), abs(coef[2]), abs(coef[3]), abs(coef[4])) < 1e-10:
         return real_roots(coef)
-        
+
     else:
-        a3 = float(coef[1]) / coef[0] # Tada
-        a2 = float(coef[2]) / coef[0] # Tada
-        a1 = float(coef[3]) / coef[0] # Tada
-        a0 = float(coef[4]) / coef[0] # Tada
+        a3 = float(coef[1]) / coef[0]  # Tada
+        a2 = float(coef[2]) / coef[0]  # Tada
+        a1 = float(coef[3]) / coef[0]  # Tada
+        a0 = float(coef[4]) / coef[0]  # Tada
 
         T1 = -a3 / 4
         T2 = (a2 ** 2) - 3 * a3 * a1 + 12 * a0
@@ -54,15 +86,15 @@ def quart_f(coef):
         else:
             R1 = math.sqrt(T3 ** 2 - T2 ** 3)
 
-        R2 = abs(T3 + R1) ** (1.0 / 3) # Tada
+        R2 = abs(T3 + R1) ** (1.0 / 3)  # Tada
         if T3 + R1 < 0:
             R2 = -R2
 
-        if abs(R2) > 1e-10: # Tada: For example, [1,1,-3,-1,-1]
+        if abs(R2) > 1e-10:  # Tada: For example, [1,1,-3,-1,-1]
             R3 = (1.0 / 12) * (T2 / R2 + R2)
         else:
-           return real_roots(coef)
-           
+            return real_roots(coef)
+
         if T5 + R3 < 0:
             return []
         else:
@@ -71,10 +103,10 @@ def quart_f(coef):
         R5 = 2 * T5 - R3
 
         if abs(R4) < 1e-10:
-           return real_roots(coef)
+            return real_roots(coef)
         else:
             R6 = T4 / R4
-            
+
         answer = []
 
         if R5 - R6 >= 0:
@@ -89,7 +121,7 @@ def quart_f(coef):
 
 
 def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
-    """Returns an array with angles of interest (angle_b, angle_bc, angle_ac)."""
+    """ Returns an array with angles of interest (angle_b, angle_bc, angle_ac) """
 
     if (0 > angle_a) or (angle_a > 178) or (0 > angle_ab) or (angle_ab > 178) or (0 > angle_ad) or (angle_ad > 178) or \
             (0 > angle_cd) or (angle_cd > 178):
@@ -117,8 +149,9 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
 
     return [angle_b, angle_bc, angle_ac]
 
+
 def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
-    """ Returns number of solutions and type of solutions for the given tetrahedron angles."""
+    """ Returns number of solutions and type of solutions for the given tetrahedron angles """
 
     # Valid tetrahedron
     if angle_ab <= 0 or 180 <= angle_ab or angle_bc <= 0 or 180 <= angle_bc or angle_ca <= 0 or 180 <= angle_ca:
@@ -222,63 +255,82 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
         # Revise this "print" line.
         print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
         return 21
-        
+
     return num_sol
 
 
 def hist_base(tAngles, vAnglesAB, vAnglesBC, vAnglesCA):
-    """ Returns numbers of each of 15 interpretations for the given intervals 
-    of tAngles (angles in the base of tetrahedron) and vAngles (visual angles at apex). """
+    """
+    Returns numbers of each of 15 interpretations for the given intervals
+    of tAngles (angles in the base of tetrahedron) and vAngles (visual angles at apex).
+    """
 
-    hb = [0 for a in range(0, 25)] #Tada
+    iteration = 0
+    l = len(list(tAngles))
+    hb = [0 for a in range(0, 25)]
+    print_progress(iteration, l, prefix='Progress:', suffix='', bar_length=100)
     for angle_a in tAngles:
+        # print('angle A = %s' % angle_a)
         for angle_b in tAngles:
+            # print('angle B = %s' % angle_b)
             if angle_a + angle_b < 180 and angle_a < angle_b < (180 - angle_a - angle_b):
                 for angle_ab in vAnglesAB:
+                    # print('angle AB = %s' % angle_ab)
                     for angle_bc in vAnglesBC:
+                        # print('angle BC = %s' % angle_bc)
                         for angle_ca in vAnglesCA:
+                            # print('angle CA = %s' % angle_ca)
                             results = p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca)
                             hb[int(results)] += 1
-
+                            # print(hb)
+        iteration += 1
+        print_progress(iteration, l, prefix='Progress:', suffix='', bar_length=50)
     return hb
 
-def ExhaustiveTest_5DSpace(): # Tada
-    tAngles   = range(1, 180, 1)  # Triangle
+
+def exhaustive_test_5d_space():
+    """ Tada, please, wright the documentation """
+    tAngles = range(1, 180, 1)  # Triangle
     vAnglesAB = range(1, 180, 1)  # Visual angles at apex
     vAnglesBC = range(1, 180, 1)  # Visual angles at apex
 
-    angle_step = range(0,180,10)
+    angle_step = range(0, 180, 10)
     for a in angle_step:
-        print('%d-%d') % (a,a+10)
-        vAnglesCA = range(a,a+10, 1)  # Visual angles at apex
+        print('%d-%d') % (a, a + 10)
+        vAnglesCA = range(a, a + 10, 1)  # Visual angles at apex
         hist_list = hist_base(tAngles, vAnglesAB, vAnglesBC, vAnglesCA)
         print(hist_list)
 
         f = open('simulation_exhaustive.txt', 'a')
-        f.write('%d-%d\n' % (a,a+10))
+        f.write('%d-%d\n' % (a, a + 10))
         f.write(str(hist_list))
         f.write('\n\n')
         f.close()
-    
-    # Tada: We can add some lines in this function to plot a histogram.
 
-def apexByTen():
-    """Calculates 18 bar-plots for groups of 10 visual angles at apex"""
+        # Tada: We can add some lines in this function to plot a histogram.
+
+
+def apex_by_ten():
+    """ Calculates 18 bar-plots for groups of 10 visual angles at apex """
 
     for i in range(18):
         tAngles = range(1, 180, 1)  # Triangle
-        vAngles = range(i*10, (i+1)*10, 1)  # Visual angles at apex
-        name = str('Triangle angles: %r, Visual angles at apex: %r') % (tAngles, vAngles)
-        hist_list = hist_base(tAngles, vAngles)
-        print('%d-%d') % (i*10, (i+1)*10) # Tada
-        print(hist_list)                  # Tada
-        plot_bars(len(hist_list), hist_list, name)
+        range_n = range(i * 10, (i + 1) * 10, 1)  # Visual angles at apex
+        vAnglesAB, vAnglesBC, vAnglesCA = range_n, range_n, range_n
+        name = str('Triangle angles: %r, Visual angles at apex: %r') % (tAngles, range_n)
+        filename = '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%s.png' % name
+        print('Range {lo} - {hi}'.format(lo=i * 10, hi=(i + 1) * 10))
+        hist_list = hist_base(tAngles, vAnglesAB, vAnglesBC, vAnglesCA)
+        print('Input list for histogram: ', hist_list, '\n')
+        plot_bars(len(hist_list), hist_list, name, filename)
 
-def tenStep():
-    """Calculates overall bar-plot with 10 degree step"""
+
+def ten_step():
+    """ Calculates overall bar-plot with 10 degree step """
 
     tAngles = range(1, 180, 10)  # Triangle
     vAngles = range(1, 180, 10)  # Visual angles at apex
     name = str('Overall')
+    filename = '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%s.png' % name
     hist_list = hist_base(tAngles, vAngles)
-    plot_bars(len(hist_list), hist_list, name)
+    plot_bars(len(hist_list), hist_list, name, filename)
