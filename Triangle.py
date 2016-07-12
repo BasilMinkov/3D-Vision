@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import xlsxwriter
 import essential_functions as ef
 
 
@@ -17,6 +18,25 @@ def plot_bars(n_groups, interps, name, filename):
     plt.ylabel('Number Of Solutions')
     plt.title(name)
     plt.xticks(index + 0.5, index)
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.clf()
+
+
+def plot_log_bars(n_groups, interps, name, filename):
+    """
+    Returns a logarithmic bar-plot for given number of bars, values of bars,
+    name of a bar-plot and location of an output figure.
+    """
+
+    index = np.arange(n_groups)
+    plt.bar(index, interps, width=1, alpha=0.6, color='r')
+    plt.ylim([10 ** 0, 10 ** 8])
+    plt.xlabel('Number Of Interpretations')
+    plt.ylabel('Number Of Solutions')
+    plt.title(name)
+    plt.yscale('log')
+    plt.xticks(index + 0.5, ['Invalid', 0, 1, 2, 3, 4])
     plt.tight_layout()
     plt.savefig(filename)
     plt.clf()
@@ -251,28 +271,46 @@ def ten_step():
     plot_bars(len(hist_list), hist_list, name, filename)
 
 
-def real_mult_log(data='apex_by_ten.csv', excel=True, name='Bar Plots Info.xlsx'):
-    """ Creates a data frame and excel book (if excel=True) with all the essential data about
+def real_mult_log(data='apex_by_ten.csv', name='Bar Plots Info.xlsx'):
+    """ Creates a data frame and excel book with all the essential data about
     simulation. Default input data – .csv file, got after implementing the apex_by_ten function.
     Default output book's name is Bar Plots Info.xlsx. """
 
-    if excel:
-        writer = pd.ExcelWriter(name)
+    writer = pd.ExcelWriter(name, engine='xlsxwriter')
     df = pd.read_csv(data, header=None)
-    invalid = df.loc[:, [10, 11]].sum(axis=1)
-    zero = df.loc[:, [20, 21]].sum(axis=1)
-    df1 = pd.concat([invalid, zero], axis=1).rename(columns={0: 'Invalid', 1: 'Zeros'})
-    df2 = pd.concat([df1, df.loc[:, 0:4]], axis=1)
+    df.to_excel(writer, 'Data')
+    invalid = df.loc[:, [10]].sum(axis=1)
+    zero = df.loc[:, [11, 20, 21]].sum(axis=1)
+    df1 = pd.concat([invalid, zero], axis=1).rename(columns={0: 'Invalid', 1: 'Number of interpretations is 0'})
+    df2 = pd.concat([df1, df.loc[:, 1:4]], axis=1)
+    counter = 20
+    li = []
+    by_ten_li = []
     for i in range(df2.shape[0]):
         real = df2.iloc[i, :]
         real.name = 'Real'
-        by_ten = df2.iloc[i, :].apply(lambda x: x * 10 if x != 1 else x)
-        by_ten.name = 'MultByTen'
-        log_ten = df2.iloc[i, :].apply(lambda x: np.log10(x) if x != 0 else 0)
+        by_ten = df2.iloc[i, :].apply(lambda x: x * 10 if x != 0 else 1)
+        by_ten.name = 'Mult By 10'
+        by_ten_li.append(list(by_ten))
+        log_ten = by_ten.apply(np.log10)
         log_ten.name = 'Log10'
         df3 = pd.concat([real, by_ten, log_ten], axis=1).transpose()
-        if excel:
-            df3.to_excel(writer, 'Range {}'.format(i+1))
-    if excel:
-        writer.save()
-    return df3
+        counter += 2
+        li.append(counter)
+        df3.to_excel(writer, 'Data', startrow=counter)
+        counter += 5
+    worksheet = writer.sheets['Data']
+    worksheet.set_column('C:C', 26)
+    for i in range(18):
+        worksheet.write('A{}'.format(li[i]), '{lo}-{hi}'.format(lo=i * 10, hi=(i + 1) * 10))
+    writer.save()
+    return df3, by_ten_li
+
+
+df3, by_ten_li = real_mult_log()
+print(by_ten_li)
+fig = 0
+for i in range(18):
+    name = 'Range {lo}-{hi}'.format(lo=i * 10, hi=(i + 1) * 10)
+    plot_log_bars(len(by_ten_li[i]), by_ten_li[i], name, '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%'
+                                                         's.png' % name)
