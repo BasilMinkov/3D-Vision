@@ -36,7 +36,7 @@ def plot_log_bars(n_groups, interps, name, filename):
     plt.ylabel('Number Of Solutions')
     plt.title(name)
     plt.yscale('log')
-    plt.xticks(index + 0.5, ['Invalid', 0, 1, 2, 3, 4])
+    plt.xticks(index + 0.5, [0, 1, 2, 3, 4])
     plt.tight_layout()
     plt.savefig(filename)
     plt.clf()
@@ -72,25 +72,48 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
     return [angle_b, angle_bc, angle_ac]
 
 
-def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
-    """ Returns number of solutions and type of solutions for the given tetrahedron angles """
+# Basil: This function returns the wrong output, but I have fixed Python logical mistakes. We should improve this
+# function, as the older one might make wrong calculations.
+
+
+def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca, type='solution'):
+    """
+    If the "type" argument is "solution", returns number of solutions and type of solutions for the given
+    tetrahedron angles.
+    If the "type" argument is "calculation", returns a list of lists of a's b's and c's.
+    """
 
     # Valid tetrahedron
     if angle_ab <= 0 or 180 <= angle_ab or angle_bc <= 0 or 180 <= angle_bc or angle_ca <= 0 or 180 <= angle_ca:
-        return 10
+        if type == 'solution':
+            return 10
+        if type == 'calculation':
+            return []
 
     if angle_ab + angle_bc < angle_ca or angle_bc + angle_ca < angle_ab or angle_ca + angle_ab < angle_bc:
-        return 10
+        if type == 'solution':
+            return 10
+        if type == 'calculation':
+            return []
 
     if angle_a <= 0 or 180 <= angle_a or angle_b <= 0 or 180 <= angle_b:
-        return 10
+        if type == 'solution':
+            return 10
+        if type == 'calculation':
+            return []
 
     # Valid triangle
     if 180 <= angle_a + angle_b:
-        return 10
+        if type == 'solution':
+            return 10
+        if type == 'calculation':
+            return []
 
     if 360 <= angle_ab + angle_bc + angle_ca:
-        return 10
+        if type == 'solution':
+            return 10
+        if type == 'calculation':
+            return []
 
     angle_c = 180 - (angle_a + angle_b)
 
@@ -105,11 +128,22 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
 
     # Valid triangle and valid image but invalid tetrahedron
     if (180 - angle_ab) + (180 - angle_bc) < angle_b:
-        return 11
+        if type == 'solution':
+            return 11
+        if type == 'calculation':
+            return []
+
     if (180 - angle_bc) + (180 - angle_ca) < angle_c:
-        return 11
+        if type == 'solution':
+            return 11
+        if type == 'calculation':
+            return []
+
     if (180 - angle_ca) + (180 - angle_ab) < angle_a:
-        return 11
+        if type == 'solution':
+            return 11
+        if type == 'calculation':
+            return []
 
     Rab = 1
     Rbc = Rab / (cosB + sinB * cosA / sinA)
@@ -139,15 +173,152 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
     if not list_x:  # if list_x is empty
         # Revise this "print" line.
         # print "Case A: (%d, %d, %d) and (%d, %d, %d)" % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
-        return 20
+        if type == 'solution':
+            return 20
+        if type == 'calculation':
+            return []
 
-    num_sol = 0
+    if type == 'solution':
+        num_sol = 0
+    if type == 'calculation':
+        result = []  # list of lists of a, b and c
+
+    for x in list_x:
+        if x ** 2 - 2 * x * cosAB + 1 <= 0:  # Basil: Here was 'continue'. But 'continue' does in this case.
+
+            a = Rab / math.sqrt(x ** 2 - 2 * x * cosAB + 1)  # A24
+            # a > 0 and b > 0 because Rab > 0
+
+            m1 = 1 - K1
+            p1 = 2 * (K1 * cosCA - x * cosBC)
+            q1 = (x ** 2 - K1)
+
+            m2 = 1
+            p2 = 2 * (-x * cosBC)
+            q2 = x ** 2 * (1 - K2) + 2 * x * K2 * cosAB - K2
+
+            if m1 * q2 - m2 * q1 != 0:
+                c = a * ((p2 * q1 - p1 * q2) / (m1 * q2 - m2 * q1))
+                if type == 'solution':
+                    if c > 0:
+                        num_sol += 1
+                if type == 'calculation':
+                    b = x * a
+                    result.append([a, b, c])
+
+            else:
+                if (cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)) > 0:  # it is, perhaps, always true (> 0)
+                    y1 = cosCA + math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
+                    if y1 > 0:
+                        if type == 'solution':
+                            num_sol += 1
+                        if type == 'calculation':
+                            result.append([a, b, y1 * a])
+
+                    y2 = cosCA - math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
+                    if y2 > 0:
+                        if type == 'solution':
+                            num_sol += 1
+                        if type == 'calculation':
+                            result.append([a, b, y2 * a])
+                            # Basil: Here also was 'else: continue', but it doesn't make sense in this case again.
+
+    if type == 'solution':
+
+        if num_sol == 0:
+            # Revise this "print" line.
+            # print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
+            return 21
+
+        if num_sol == 5:
+            print('num_sol = 5: %d, %d, %d, %d, %d' % (angle_a, angle_b, angle_ab, angle_bc, angle_ca))
+
+        return num_sol
+
+    if type == 'calculation':
+        print(result)
+
+
+# Basil: This function returns 5 or 6 interpretations for your cases of interest, but is written with Python logical
+# mistakes. I have underlined this mistakes.
+
+
+def p_tet_calc(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
+    """ Returns number of solutions and type of solutions for the given tetrahedron angles """
+
+    # Valid tetrahedron
+    if angle_ab <= 0 or 180 <= angle_ab or angle_bc <= 0 or 180 <= angle_bc or angle_ca <= 0 or 180 <= angle_ca:
+        return []
+
+    if angle_ab + angle_bc < angle_ca or angle_bc + angle_ca < angle_ab or angle_ca + angle_ab < angle_bc:
+        return []
+
+    if angle_a <= 0 or 180 <= angle_a or angle_b <= 0 or 180 <= angle_b:
+        return []
+
+    # Valid triangle
+    if 180 <= angle_a + angle_b:
+        return []
+
+    if 360 <= angle_ab + angle_bc + angle_ca:
+        return []
+
+    angle_c = 180 - (angle_a + angle_b)
+
+    cosAB = math.cos(math.radians(angle_ab))
+    cosBC = math.cos(math.radians(angle_bc))
+    cosCA = math.cos(math.radians(angle_ca))
+
+    cosA = math.cos(math.radians(angle_a))
+    sinA = math.sin(math.radians(angle_a))
+    cosB = math.cos(math.radians(angle_b))
+    sinB = math.sin(math.radians(angle_b))
+
+    # Valid triangle and valid image but invalid tetrahedron
+    if (180 - angle_ab) + (180 - angle_bc) < angle_b:
+        return []
+    if (180 - angle_bc) + (180 - angle_ca) < angle_c:
+        return []
+    if (180 - angle_ca) + (180 - angle_ab) < angle_a:
+        return []
+
+    Rab = 1
+    Rbc = Rab / (cosB + sinB * cosA / sinA)
+    Rca = Rab / (cosA + sinA * cosB / sinB)
+
+    K1 = (Rbc ** 2) / (Rca ** 2)
+    K2 = (Rbc ** 2) / (Rab ** 2)
+
+    G4 = (K1 * K2 - K1 - K2) ** 2 - 4 * K1 * K2 * (cosBC ** 2)
+    G3 = 4 * (K1 * K2 - K1 - K2) * K2 * (1 - K1) * cosAB + 4 * K1 * cosBC * (
+        (K1 * K2 + K2 - K1) * cosCA + 2 * K2 * cosAB * cosBC)
+    G2 = (2 * K2 * (1 - K1) * cosAB) ** 2 + 2 * (K1 * K2 + K1 - K2) * (K1 * K2 - K1 - K2) + 4 * K1 * (
+        (K1 - K2) * (cosBC ** 2) + (1 - K2) * K1 * (cosCA ** 2) - 2 * K2 * (1 + K1) * cosAB * cosCA * cosBC)
+    G1 = 4 * (K1 * K2 + K1 - K2) * K2 * (1 - K1) * cosAB + 4 * K1 * (
+        (K1 * K2 - K1 + K2) * cosCA * cosBC + 2 * K1 * K2 * cosAB * (cosCA ** 2))
+    G0 = (K1 * K2 + K1 - K2) ** 2 - 4 * (K1 ** 2) * K2 * (cosCA ** 2)
+
+    p = [G4, G3, G2, G1, G0]
+    g_roots = ef.quart_f(p)
+
+    # Tada: Do we still need the following paragraph?
+    list_x = []
+    for x in g_roots:
+        if 0 < x.real:
+            list_x.append(x.real)
+
+    if not list_x:  # if list_x is empty
+        # Revise this "print" line.
+        # print "Case A: (%d, %d, %d) and (%d, %d, %d)" % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
+        return []
+
+    num_sol = []
     for x in list_x:
         if x ** 2 - 2 * x * cosAB + 1 <= 0:
-            continue
+            continue  # mistake: doesn't do anything
 
         a = Rab / math.sqrt(x ** 2 - 2 * x * cosAB + 1)  # A24
-        # b = x * a
+        b = x * a
         # a > 0 and b > 0 because Rab > 0
 
         m1 = 1 - K1
@@ -161,22 +332,22 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
         if m1 * q2 - m2 * q1 != 0:
             c = a * ((p2 * q1 - p1 * q2) / (m1 * q2 - m2 * q1))
             if c > 0:
-                num_sol += 1
+                num_sol.append([a, b, c])
         else:
             if (cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)) > 0:  # it is, perhaps, always true (> 0)
                 y1 = cosCA + math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
                 if y1 > 0:
-                    num_sol += 1
+                    num_sol.append([a, b, y1 * a])
                 y2 = cosCA - math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
                 if y2 > 0:
-                    num_sol += 1
+                    num_sol.append([a, b, y2 * a])
             else:
-                continue
+                continue # mistake: doesn't do anything
 
-    if num_sol == 0:
-        # Revise this "print" line.
-        # print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
-        return 21
+                # if num_sol == 0:
+                # Revise this "print" line.
+                # print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
+                # return 21
 
     return num_sol
 
@@ -197,7 +368,7 @@ def hist_base(tAngles, vAnglesAB, vAnglesBC, vAnglesCA, info=False):
         for angle_b in tAngles:
             if info:
                 print('angle B = %s' % angle_b)
-            if angle_a + angle_b < 180 and angle_a < angle_b < (180 - angle_a - angle_b):
+            if angle_a + angle_b < 180 and angle_a <= angle_b <= (180 - angle_a - angle_b):
                 for angle_ab in vAnglesAB:
                     if info:
                         print('angle AB = %s' % angle_ab)
@@ -260,15 +431,55 @@ def apex_by_ten(info=True):
         f.close()
 
 
-def ten_step():
-    """ Calculates overall bar-plot with 10 degree step """
+def angle_min_max():
+    tAngles = range(0, 180, 1)  # Triangle
+    vAnglesAB = range(0, 180, 1)  # Visual angles at apex
+    vAnglesBC = range(0, 180, 1)  # Visual angles at apex
+    vAnglesCA = range(0, 180, 1)  # Visual angles at apex
 
-    tAngles = range(1, 180, 10)  # Triangle
-    vAngles = range(1, 180, 10)  # Visual angles at apex
-    name = str('Overall')
-    filename = '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%s.png' % name
-    hist_list = hist_base(tAngles, vAngles)
-    plot_bars(len(hist_list), hist_list, name, filename)
+    histTotal = [0 for a in range(0, 25)]
+    histMin = [[0 for x in range(25)] for y in range(18)]
+    histMax = [[0 for x in range(25)] for y in range(18)]
+
+    for angle_a in tAngles:
+        print('angle_a = %d' % angle_a)
+        for angle_b in tAngles:
+            angle_c = (180 - angle_a - angle_b)
+            if angle_a + angle_b < 180 and angle_a <= angle_b <= angle_c:
+                for angle_ab in vAnglesAB:
+                    for angle_bc in vAnglesBC:
+                        for angle_ca in vAnglesCA:
+                            results = p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca)
+                            histTotal[int(results)] += 1
+                            indexMin = int(min(angle_ab, angle_bc, angle_ca) / 10)
+                            indexMax = int(max(angle_ab, angle_bc, angle_ca) / 10)
+                            histMin[indexMin][int(results)] += 1
+                            histMax[indexMax][int(results)] += 1
+
+    f = open('simulation_3types.txt', 'a')
+
+    f.write('Total Hist\n')
+    f.write(str(histTotal))
+    f.write('\n\n')
+    print(histTotal)
+
+    print('\n\n\nHist Min(Angle)\n')
+    f.write('\n\n\nHist Min(Angle)\n')
+    for a in range(0, 18, 1):
+        print(histMin[a])
+        f.write('%d-%d\n' % (a * 10, a * 10 + 10))
+        f.write(str(histMin[a]))
+        f.write('\n\n')
+
+    print('\n\n\nHist Max(Angle)\n')
+    f.write('\n\n\nHist Max(Angle)\n')
+    for a in range(0, 18, 1):
+        print(histMax[a])
+        f.write('%d-%d\n' % (a * 10, a * 10 + 10))
+        f.write(str(histMax[a]))
+        f.write('\n\n')
+
+    f.close()
 
 
 def real_mult_log(data='apex_by_ten.csv', name='Bar Plots Info.xlsx'):
@@ -291,7 +502,7 @@ def real_mult_log(data='apex_by_ten.csv', name='Bar Plots Info.xlsx'):
         real.name = 'Real'
         by_ten = df2.iloc[i, :].apply(lambda x: x * 10 if x != 0 else 1)
         by_ten.name = 'Mult By 10'
-        by_ten_li.append(list(by_ten))
+        by_ten_li.append(list(by_ten)[1:])
         log_ten = by_ten.apply(np.log10)
         log_ten.name = 'Log10'
         df3 = pd.concat([real, by_ten, log_ten], axis=1).transpose()
@@ -307,10 +518,17 @@ def real_mult_log(data='apex_by_ten.csv', name='Bar Plots Info.xlsx'):
     return df3, by_ten_li
 
 
-df3, by_ten_li = real_mult_log()
-print(by_ten_li)
-fig = 0
-for i in range(18):
-    name = 'Range {lo}-{hi}'.format(lo=i * 10, hi=(i + 1) * 10)
-    plot_log_bars(len(by_ten_li[i]), by_ten_li[i], name, '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%'
-                                                         's.png' % name)
+# Basil: Tada, here is your angles! Overall, I suppose, that this strange cases appeared because of logical mistakes.
+# Let's decide how we are going to fix them.
+
+# print(p_tet_calc(49, 61, 70, 45, 60))
+# print(p_tet_calc(50, 50, 80, 48, 47))
+# print(p_tet_calc(52, 64, 64, 46, 62))
+# print(p_tet_calc(52, 64, 64, 49, 63))
+# print(p_tet_calc(60, 60, 60, 54, 59))
+
+# print(p_tet_calc(44, 44, 59, 42, 42))
+# print(p_tet_calc(45, 45, 69, 44, 44))
+# print(p_tet_calc(46, 46, 54, 38, 38))
+# print(p_tet_calc(46, 46, 69, 43, 43))
+# print(p_tet_calc(55, 55, 62, 50, 50))
