@@ -76,44 +76,25 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
 # function, as the older one might make wrong calculations.
 
 
-def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca, type='solution'):
-    """
-    If the "type" argument is "solution", returns number of solutions and type of solutions for the given
-    tetrahedron angles.
-    If the "type" argument is "calculation", returns a list of lists of a's b's and c's.
-    """
+def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
+    """ Returns number of solutions and type of solutions for the given tetrahedron angles """
 
     # Valid tetrahedron
     if angle_ab <= 0 or 180 <= angle_ab or angle_bc <= 0 or 180 <= angle_bc or angle_ca <= 0 or 180 <= angle_ca:
-        if type == 'solution':
-            return 10
-        if type == 'calculation':
-            return []
+        return 10
 
     if angle_ab + angle_bc < angle_ca or angle_bc + angle_ca < angle_ab or angle_ca + angle_ab < angle_bc:
-        if type == 'solution':
-            return 10
-        if type == 'calculation':
-            return []
+        return 10
 
     if angle_a <= 0 or 180 <= angle_a or angle_b <= 0 or 180 <= angle_b:
-        if type == 'solution':
-            return 10
-        if type == 'calculation':
-            return []
+        return 10
 
     # Valid triangle
     if 180 <= angle_a + angle_b:
-        if type == 'solution':
-            return 10
-        if type == 'calculation':
-            return []
+        return 10
 
     if 360 <= angle_ab + angle_bc + angle_ca:
-        if type == 'solution':
-            return 10
-        if type == 'calculation':
-            return []
+        return 10
 
     angle_c = 180 - (angle_a + angle_b)
 
@@ -128,22 +109,11 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca, type='solution'):
 
     # Valid triangle and valid image but invalid tetrahedron
     if (180 - angle_ab) + (180 - angle_bc) < angle_b:
-        if type == 'solution':
-            return 11
-        if type == 'calculation':
-            return []
-
+        return 11
     if (180 - angle_bc) + (180 - angle_ca) < angle_c:
-        if type == 'solution':
-            return 11
-        if type == 'calculation':
-            return []
-
+        return 11
     if (180 - angle_ca) + (180 - angle_ab) < angle_a:
-        if type == 'solution':
-            return 11
-        if type == 'calculation':
-            return []
+        return 11
 
     Rab = 1
     Rbc = Rab / (cosB + sinB * cosA / sinA)
@@ -173,70 +143,46 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca, type='solution'):
     if not list_x:  # if list_x is empty
         # Revise this "print" line.
         # print "Case A: (%d, %d, %d) and (%d, %d, %d)" % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
-        if type == 'solution':
-            return 20
-        if type == 'calculation':
-            return []
+        return 20
 
-    if type == 'solution':
-        num_sol = 0
-    if type == 'calculation':
-        result = []  # list of lists of a, b and c
-
+    num_sol = 0
     for x in list_x:
-        if x ** 2 - 2 * x * cosAB + 1 <= 0:  # Basil: Here was 'continue'. But 'continue' does in this case.
+        if x ** 2 - 2 * x * cosAB + 1 <= 0:
+            continue
 
-            a = Rab / math.sqrt(x ** 2 - 2 * x * cosAB + 1)  # A24
-            # a > 0 and b > 0 because Rab > 0
+        a = Rab / math.sqrt(x ** 2 - 2 * x * cosAB + 1)  # A24
+        # b = x * a
+        # a > 0 and b > 0 because Rab > 0
 
-            m1 = 1 - K1
-            p1 = 2 * (K1 * cosCA - x * cosBC)
-            q1 = (x ** 2 - K1)
+        m1 = 1 - K1
+        p1 = 2 * (K1 * cosCA - x * cosBC)
+        q1 = (x ** 2 - K1)
 
-            m2 = 1
-            p2 = 2 * (-x * cosBC)
-            q2 = x ** 2 * (1 - K2) + 2 * x * K2 * cosAB - K2
+        m2 = 1
+        p2 = 2 * (-x * cosBC)
+        q2 = x ** 2 * (1 - K2) + 2 * x * K2 * cosAB - K2
 
-            if m1 * q2 - m2 * q1 != 0:
-                c = a * ((p2 * q1 - p1 * q2) / (m1 * q2 - m2 * q1))
-                if type == 'solution':
-                    if c > 0:
-                        num_sol += 1
-                if type == 'calculation':
-                    b = x * a
-                    result.append([a, b, c])
-
+        if m1 * q2 - m2 * q1 != 0:
+            c = a * ((p2 * q1 - p1 * q2) / (m1 * q2 - m2 * q1))
+            if c > 0:
+                num_sol += 1
+        else:
+            if (cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)) > 0:  # it is, perhaps, always true (> 0)
+                y1 = cosCA + math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
+                if y1 > 0:
+                    num_sol += 1
+                y2 = cosCA - math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
+                if y2 > 0:
+                    num_sol += 1
             else:
-                if (cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)) > 0:  # it is, perhaps, always true (> 0)
-                    y1 = cosCA + math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
-                    if y1 > 0:
-                        if type == 'solution':
-                            num_sol += 1
-                        if type == 'calculation':
-                            result.append([a, b, y1 * a])
+                continue
 
-                    y2 = cosCA - math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
-                    if y2 > 0:
-                        if type == 'solution':
-                            num_sol += 1
-                        if type == 'calculation':
-                            result.append([a, b, y2 * a])
-                            # Basil: Here also was 'else: continue', but it doesn't make sense in this case again.
+    if num_sol == 0:
+        # Revise this "print" line.
+        # print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
+        return 21
 
-    if type == 'solution':
-
-        if num_sol == 0:
-            # Revise this "print" line.
-            # print("Case B: (%d, %d, %d) and (%d, %d, %d)") % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
-            return 21
-
-        if num_sol == 5:
-            print('num_sol = 5: %d, %d, %d, %d, %d' % (angle_a, angle_b, angle_ab, angle_bc, angle_ca))
-
-        return num_sol
-
-    if type == 'calculation':
-        print(result)
+    return num_sol
 
 
 # Basil: This function returns 5 or 6 interpretations for your cases of interest, but is written with Python logical
