@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import xlsxwriter
+# import xlsxwriter
 import essential_functions as ef
 
 
@@ -71,11 +71,6 @@ def p_tet_sp(angle_a, angle_ab, angle_ad, angle_cd):
 
     return [angle_b, angle_bc, angle_ac]
 
-
-# Basil: This function returns the wrong output, but I have fixed Python logical mistakes. We should improve this
-# function, as the older one might make wrong calculations.
-
-
 def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
     """ Returns number of solutions and type of solutions for the given tetrahedron angles """
 
@@ -134,15 +129,12 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
     p = [G4, G3, G2, G1, G0]
     g_roots = ef.quart_f(p)
 
-    # Tada: Do we still need the following paragraph?
     list_x = []
     for x in g_roots:
-        if 0 < x.real:
+        if 0 < x.real and x.real not in list_x:
             list_x.append(x.real)
 
     if not list_x:  # if list_x is empty
-        # Revise this "print" line.
-        # print "Case A: (%d, %d, %d) and (%d, %d, %d)" % (angle_a, angle_b, angle_c, angle_ab, angle_bc, angle_ca)
         return 20
 
     num_sol = 0
@@ -183,10 +175,6 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
         return 21
 
     return num_sol
-
-
-# Basil: This function returns 5 or 6 interpretations for your cases of interest, but is written with Python logical
-# mistakes. I have underlined this mistakes.
 
 
 def p_tet_calc(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
@@ -361,20 +349,37 @@ def apex_by_ten(info=True):
 
     for i in range(18):
         f = open('apex_by_ten.csv', 'a')
-        tAngles = range(1, 5, 1)  # Triangle
-        range_n = range(i * 10, (i + 1) * 10, 1)  # Visual angles at apex
+        tAngles = range(1, 180, 1)  # Triangle
+        range_n = range(i * 10 + 1, (i + 1) * 10, 1)  # Visual angles at apex
         vAnglesAB, vAnglesBC, vAnglesCA = range_n, range_n, range_n
-        name = str('Triangle angles: %r, Visual angles at apex: %r') % (tAngles, range_n)
-        filename = '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%s.png' % name
+        # name = str('Triangle angles: %r, Visual angles at apex: %r') % (tAngles, range_n)
+        # filename = '/Users/basilminkov/PycharmProjects/3D Vision/Output Figures/%s.png' % name
         if info:
-            print('Range {lo} - {hi}'.format(lo=i * 10, hi=(i + 1) * 10))
+            print('Range {lo} - {hi}'.format(lo=i * 10 +1, hi=(i + 1) * 10))
         hist_list = hist_base(tAngles, vAnglesAB, vAnglesBC, vAnglesCA)
         if info:
             print('Input list for histogram: ', hist_list, '\n')
-        plot_bars(len(hist_list), hist_list, name, filename)
+        # plot_bars(len(hist_list), hist_list, name, filename)
         f.write(str(hist_list)[1:-1])
         f.write('\n')
         f.close()
+
+def shape_constancy():
+    """ Gottheil & Bitterman experiment simulation """
+
+    histTotal = [0 for a in range(0, 25)]
+    tAngles = range(0, 180, 1)  # Triangle
+    vAnglesAB = range(0, 180, 1)  # Visual angles at apex
+    vAnglesBC = range(0, 180, 1)  # Visual angles at apex
+    vAnglesCA = range(0, 180, 1)  # Visual angles at apex
+
+    for angle_a in tAngles:
+        angle_b = angle_a
+        for angle_ab in vAnglesAB:
+            for angle_bc in vAnglesBC:
+                for angle_ca in vAnglesCA:
+                    results = p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca)
+                    histTotal[int(results)] += 1
 
 
 def angle_min_max():
@@ -463,18 +468,5 @@ def real_mult_log(data='apex_by_ten.csv', name='Bar Plots Info.xlsx'):
     writer.save()
     return df3, by_ten_li
 
-
-# Basil: Tada, here is your angles! Overall, I suppose, that this strange cases appeared because of logical mistakes.
-# Let's decide how we are going to fix them.
-
-# print(p_tet_calc(49, 61, 70, 45, 60))
-# print(p_tet_calc(50, 50, 80, 48, 47))
-# print(p_tet_calc(52, 64, 64, 46, 62))
-# print(p_tet_calc(52, 64, 64, 49, 63))
-# print(p_tet_calc(60, 60, 60, 54, 59))
-
-# print(p_tet_calc(44, 44, 59, 42, 42))
-# print(p_tet_calc(45, 45, 69, 44, 44))
-# print(p_tet_calc(46, 46, 54, 38, 38))
-# print(p_tet_calc(46, 46, 69, 43, 43))
-# print(p_tet_calc(55, 55, 62, 50, 50))
+if __name__ == '__main__':
+    apex_by_ten()
