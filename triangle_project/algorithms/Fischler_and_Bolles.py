@@ -68,14 +68,21 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
     if not list_x:  # if list_x is empty
         return 20
 
+    tooSmall = 0.000000001
+    
     num_sol = 0
     for x in list_x:
         if x ** 2 - 2 * x * cosAB + 1 <= 0:
             continue
 
         a = Rab / math.sqrt(x ** 2 - 2 * x * cosAB + 1)  # A24
-        # b = x * a
+        b = x * a
         # a > 0 and b > 0 because Rab > 0
+        
+        if angle_a == angle_bc and a < tooSmall:
+            continue
+        if angle_b == angle_ca and b < tooSmall:
+            continue
 
         m1 = 1 - K1
         p1 = 2 * (K1 * cosCA - x * cosBC)
@@ -87,6 +94,10 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
 
         if m1 * q2 - m2 * q1 != 0:
             c = a * ((p2 * q1 - p1 * q2) / (m1 * q2 - m2 * q1))
+            
+            if angle_c == angle_ab and c < tooSmall:
+                continue
+                
             if c > 0:
                 num_sol += 1
         else:
@@ -94,9 +105,15 @@ def p_tet(angle_a, angle_b, angle_ab, angle_bc, angle_ca):
                 y1 = cosCA + math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
                 if y1 > 0:
                     num_sol += 1
+                    if angle_c == angle_ab and y1*a < tooSmall:
+                        num_sol -= 1
+                        
                 y2 = cosCA - math.sqrt((cosCA ** 2) + (((Rca ** 2) - (a ** 2)) / (a ** 2)))  # A27
                 if y2 > 0:
                     num_sol += 1
+                    if angle_c == angle_ab and y2*a < tooSmall:
+                        num_sol -= 1
+
             else:
                 continue
 
